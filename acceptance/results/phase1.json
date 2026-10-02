@@ -1,0 +1,106 @@
+{
+ "side": "A",
+ "reviewer": "Codex acceptance session 2026-10-02",
+ "tier": "normal",
+ "steps": {
+  "S0_baseline": {
+   "status": 200,
+   "count": 13
+  },
+  "S1_register": {
+   "vessel": 201,
+   "probe": 201,
+   "circuit": 201
+  },
+  "S1_after": {
+   "count": 16,
+   "V-90": {
+    "id": "V-90",
+    "type": "vessel",
+    "status": "active",
+    "active": null,
+    "zone": "north",
+    "vessel_id": null,
+    "probe_kind": null,
+    "enabled": null
+   },
+   "P-90": {
+    "id": "P-90",
+    "type": "probe",
+    "status": "active",
+    "active": null,
+    "zone": null,
+    "vessel_id": "V-90",
+    "probe_kind": "pressure",
+    "enabled": null
+   },
+   "C-90": {
+    "id": "C-90",
+    "type": "circuit",
+    "status": "active",
+    "active": null,
+    "zone": "east",
+    "vessel_id": null,
+    "probe_kind": null,
+    "enabled": true
+   }
+  },
+  "S2_duplicate": {
+   "status": 400,
+   "count_unchanged": true
+  },
+  "S3_invalid_atomic": {
+   "missing_vessel": 400,
+   "bad_kind": 400,
+   "P-91_absent": true,
+   "P-92_absent": true,
+   "count_unchanged": true
+  },
+  "S4_runtime_live": {
+   "status": 200,
+   "P-90_in_probes": true,
+   "V-90_in_vessels": true
+  },
+  "S5_fill": {
+   "status": 201,
+   "circuit": "C-90"
+  },
+  "S5_occupied_deactivate": {
+   "circuit": 409,
+   "vessel": 409,
+   "probe": 409
+  },
+  "S5_abort": {
+   "status": 200
+  },
+  "S5_after_release": {
+   "probe_after_release": 200,
+   "P-90_status": {
+    "id": "P-90",
+    "type": "probe",
+    "status": "deactivated",
+    "active": null,
+    "zone": null,
+    "vessel_id": "V-90",
+    "probe_kind": "pressure",
+    "enabled": null
+   }
+  },
+  "S6_modify": {
+   "status": 200,
+   "V-90": {
+    "id": "V-90",
+    "type": "vessel",
+    "status": "active",
+    "active": null,
+    "zone": "north",
+    "vessel_id": null,
+    "probe_kind": null,
+    "enabled": null
+   }
+  },
+  "ids": {
+   "count_after_register": 16
+  }
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "side": "A",
+ "reviewer": "Codex acceptance session 2026-10-02",
+ "tier": "normal",
+ "steps": {
+  "P1_catalog_after_restart": {
+   "status": 200,
+   "count": 16,
+   "V-90": {
+    "id": "V-90",
+    "type": "vessel",
+    "status": "active",
+    "active": null,
+    "zone": "north",
+    "vessel_id": null
+   },
+   "P-90": {
+    "id": "P-90",
+    "type": "probe",
+    "status": "deactivated",
+    "active": null,
+    "zone": null,
+    "vessel_id": "V-90"
+   },
+   "C-90": {
+    "id": "C-90",
+    "type": "circuit",
+    "status": "active",
+    "active": null,
+    "zone": "east",
+    "vessel_id": null
+   }
+  },
+  "P2_runtime_loaded": {
+   "P-90_in_probes": false,
+   "V-90_in_vessels": true
+  },
+  "P3_deactivate_idle_circuit": {
+   "status": 200,
+   "C-90": {
+    "id": "C-90",
+    "type": "circuit",
+    "status": "deactivated",
+    "active": null,
+    "zone": "east",
+    "vessel_id": null
+   }
+  }
+ }
+}

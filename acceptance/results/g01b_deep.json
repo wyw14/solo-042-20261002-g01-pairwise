@@ -1,0 +1,97 @@
+{
+ "side": "A",
+ "reviewer": "Codex acceptance session 2026-10-02",
+ "tier": "normal",
+ "fixture": "g01b_deep",
+ "steps": {
+  "D0_baseline": {
+   "status": 200,
+   "count": 13
+  },
+  "D1_zone_duplicate": {
+   "register_status": 201,
+   "present": true,
+   "count": 14,
+   "cleanup_deactivate": 200
+  },
+  "D2_valve_duplicate": {
+   "register_status": 400,
+   "absent": true,
+   "count": 14
+  },
+  "D3_register_target": {
+   "register_status": 201,
+   "state": {
+    "id": "C-01",
+    "status": "active",
+    "zone": "west",
+    "valve_id": "VALVE-01",
+    "vessel_id": null
+   }
+  },
+  "D4_fill": {
+   "status": 201,
+   "circuit": "C-01"
+  },
+  "D5_modify_reserved": {
+   "status": 200,
+   "after": {
+    "id": "C-01",
+    "status": "active",
+    "zone": "west2",
+    "valve_id": "VALVE-02",
+    "vessel_id": null
+   }
+  },
+  "D6_deactivate_reserved": {
+   "status": 409
+  },
+  "D7_abort": {
+   "status": 200
+  },
+  "D8_modify_after_release": {
+   "status": 200
+  },
+  "D9_deactivate_idle": {
+   "status": 200
+  },
+  "D10_deactivate_again": {
+   "status": 200,
+   "state": {
+    "id": "C-01",
+    "status": "deactivated",
+    "zone": "west",
+    "valve_id": "VALVE-01",
+    "vessel_id": null
+   }
+  },
+  "D11_modify_deactivated": {
+   "status": 200,
+   "state": {
+    "id": "C-01",
+    "status": "deactivated",
+    "zone": "west3",
+    "valve_id": "VALVE-03",
+    "vessel_id": null
+   }
+  },
+  "D12_vessel_with_bound_probe": {
+   "deactivate_status": 400,
+   "vessel": {
+    "id": "V-Z1",
+    "status": "active",
+    "zone": "north",
+    "valve_id": null,
+    "vessel_id": null
+   }
+  },
+  "D12_cleanup": {
+   "probe_deactivate": 200,
+   "vessel_deactivate": 200
+  },
+  "D13_bind_deactivated_vessel": {
+   "register_status": 400,
+   "absent": true
+  }
+ }
+}
