@@ -37,6 +37,16 @@ func (r *Registry) Get(id string) (model.Vessel, bool) {
 	return v, ok
 }
 
+func (r *Registry) Remove(id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if _, ok := r.vessels[id]; !ok {
+		return errors.New("vessel not found")
+	}
+	delete(r.vessels, id)
+	return nil
+}
+
 func (r *Registry) List() []model.Vessel {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

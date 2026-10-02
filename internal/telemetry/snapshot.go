@@ -30,6 +30,12 @@ func (s *SnapshotStore) Apply(vessel model.Vessel) {
 	s.updated = vessel.UpdatedAt
 }
 
+func (s *SnapshotStore) Remove(id string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.vessels, id)
+}
+
 func (s *SnapshotStore) Get(id string) (model.Vessel, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

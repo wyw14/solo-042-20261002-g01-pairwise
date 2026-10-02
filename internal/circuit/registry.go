@@ -3,6 +3,7 @@ package circuit
 import (
 	"errors"
 	"sort"
+	"strings"
 	"sync"
 )
 
@@ -34,6 +35,42 @@ func (r *Registry) Get(id string) (Circuit, bool) {
 	defer r.mu.RUnlock()
 	circuit, ok := r.circuits[id]
 	return circuit, ok
+}
+
+func (r *Registry) Register(circuit Circuit) error {
+	if strings.TrimSpace(circuit.ID) == "" {
+		return errors.New("circuit id is required")
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if _, exists := r.circuits[circuit.ID]; exists {
+		return errors.New("circuit already registered")
+	}
+	r.circuits[circuit.ID] = circuit
+	return nil
+}
+
+func (r *Registry) Remove(id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if _, ok := r.circuits[id]; !ok {
+		return errors.New("circuit not found")
+	}
+	delete(r.circuits, id)
+	return nil
+}
+
+func (r *Registry) UpdateConfig(id, zone, valveID string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	circuit, ok := r.circuits[id]
+	if !ok {
+		return errors.New("circuit not found")
+	}
+	circuit.Zone = zone
+	circuit.ValveID = valveID
+	r.circuits[id] = circuit
+	return nil
 }
 
 func (r *Registry) List() []Circuit {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/wyw14/cry-98/internal/alarm"
+	"github.com/wyw14/cry-98/internal/catalog"
 	"github.com/wyw14/cry-98/internal/fill"
 	"github.com/wyw14/cry-98/internal/monitor"
 	"github.com/wyw14/cry-98/internal/probe"
@@ -26,6 +27,7 @@ type Dependencies struct {
 	Health         *monitor.HealthService
 	ProbeMonitor   *monitor.ProbeMonitor
 	Suppressions   *alarm.SuppressionService
+	Catalog        *catalog.Service
 	Now            func() time.Time
 }
 
@@ -69,6 +71,16 @@ func (s *Server) routes() chi.Router {
 		api.Get("/probes", s.listProbes)
 		api.Post("/probes/{id}/samples", s.publishProbeSample)
 		api.Post("/probes/{id}/rebind", s.rebindProbe)
+		api.Get("/catalog", s.getCatalog)
+		api.Post("/catalog/vessels", s.registerVessel)
+		api.Post("/catalog/vessels/{id}", s.modifyVessel)
+		api.Post("/catalog/vessels/{id}/deactivate", s.deactivateVessel)
+		api.Post("/catalog/probes", s.registerProbe)
+		api.Post("/catalog/probes/{id}", s.modifyProbe)
+		api.Post("/catalog/probes/{id}/deactivate", s.deactivateProbe)
+		api.Post("/catalog/circuits", s.registerCircuit)
+		api.Post("/catalog/circuits/{id}", s.modifyCircuit)
+		api.Post("/catalog/circuits/{id}/deactivate", s.deactivateCircuit)
 	})
 	return router
 }

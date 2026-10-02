@@ -138,6 +138,15 @@ func (c *Coordinator) Get(id uuid.UUID) (model.FillSession, bool) {
 	return session, ok
 }
 
+// HasActive reports whether the vessel currently occupies a circuit with an
+// active fill session.
+func (c *Coordinator) HasActive(vesselID string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	_, active := c.active[vesselID]
+	return active
+}
+
 func (c *Coordinator) List() []model.FillSession {
 	c.mu.RLock()
 	defer c.mu.RUnlock()

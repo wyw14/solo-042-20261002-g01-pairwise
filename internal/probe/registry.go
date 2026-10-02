@@ -125,6 +125,22 @@ func (r *Registry) Update(id string, apply func(model.Probe) (model.Probe, error
 	return next, nil
 }
 
+func (r *Registry) Remove(id string) error {
+	r.mu.Lock()
+	if _, ok := r.probes[id]; !ok {
+		r.mu.Unlock()
+		return errors.New("probe not found")
+	}
+	subscription := r.subscriptions[id]
+	delete(r.probes, id)
+	delete(r.subscriptions, id)
+	r.mu.Unlock()
+	if subscription != nil {
+		subscription.Close()
+	}
+	return nil
+}
+
 func (r *Registry) Detach(id string, now time.Time) error {
 	r.mu.Lock()
 	probe, ok := r.probes[id]
