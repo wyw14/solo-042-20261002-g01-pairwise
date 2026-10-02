@@ -82,6 +82,22 @@ func (r *Registry) Register(probe model.Probe) error {
 	return nil
 }
 
+func (r *Registry) Remove(id string) bool {
+	r.mu.Lock()
+	if _, exists := r.probes[id]; !exists {
+		r.mu.Unlock()
+		return false
+	}
+	subscription := r.subscriptions[id]
+	delete(r.probes, id)
+	delete(r.subscriptions, id)
+	r.mu.Unlock()
+	if subscription != nil {
+		subscription.Close()
+	}
+	return true
+}
+
 func (r *Registry) Get(id string) (model.Probe, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

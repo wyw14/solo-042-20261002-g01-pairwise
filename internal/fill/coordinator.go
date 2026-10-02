@@ -16,6 +16,10 @@ import (
 
 var ErrActiveSession = errors.New("vessel already has an active fill session")
 
+// ErrDeviceOccupied signals that a deactivation touched a device held by a
+// live fill session.
+var ErrDeviceOccupied = errors.New("device is occupied by an active fill")
+
 type Coordinator struct {
 	mu          sync.RWMutex
 	sessions    map[uuid.UUID]model.FillSession
@@ -147,6 +151,47 @@ func (c *Coordinator) List() []model.FillSession {
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].CreatedAt.Before(result[j].CreatedAt) })
 	return result
+}
+
+// ActiveVessel reports whether the vessel currently participates in a live
+// fill session, including sessions whose circuit is retained after a fault.
+func (c *Coordinator) ActiveVessel(vesselID string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	_, active := c.active[vesselID]
+	return active
+}
+
+// ActiveCircuit reports whether the circuit is held by an active fill session
+// or retained for explicit recovery after an isolation failure.
+func (c *Coordinator) ActiveCircuit(circuitID string) bool {
+	_, occupied := c.circuits.Get(circuitID)
+	return occupied
+}
+
+// GuardVessel runs action while holding the coordinator lock, refusing it
+// when the vessel is part of a live fill. This makes the occupancy check
+// and the runtime removal atomic with respect to fill startup.
+func (c *Coordinator) GuardVessel(vesselID string, action func() error) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if _, busy := c.active[vesselID]; busy {
+		return ErrDeviceOccupied
+	}
+	return action()
+}
+
+// GuardCircuit is the circuit-side equivalent of GuardVessel. The manager
+// lookup takes the reservation mutex while the coordinator lock is held,
+// matching the lock order used by Start, so a fill can never slip in
+// between the occupancy check and the registry removal.
+func (c *Coordinator) GuardCircuit(circuitID string, action func() error) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if _, occupied := c.circuits.Get(circuitID); occupied {
+		return ErrDeviceOccupied
+	}
+	return action()
 }
 
 func (c *Coordinator) selectCircuit() (circuit.Circuit, error) {

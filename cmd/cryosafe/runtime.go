@@ -10,6 +10,7 @@ import (
 
 	"github.com/wyw14/cry-98/internal/alarm"
 	"github.com/wyw14/cry-98/internal/api"
+	"github.com/wyw14/cry-98/internal/catalog"
 	"github.com/wyw14/cry-98/internal/circuit"
 	"github.com/wyw14/cry-98/internal/fill"
 	"github.com/wyw14/cry-98/internal/journal"
@@ -44,61 +45,59 @@ func buildRuntime(cfg config, now func() time.Time) (*runtime, error) {
 		return nil, err
 	}
 	slog.Info("journal opened", "root", store.Root(), "partitions", len(partitions))
-	vesselRegistry := vessel.NewRegistry()
-	for _, seed := range []struct{ id, name, zone string }{
-		{"V-03", "Cryogenic vessel 03", "north"},
-		{"V-07", "Cryogenic vessel 07", "north"},
-		{"V-09", "Cryogenic vessel 09", "south"},
-		{"V-12", "Cryogenic vessel 12", "south"},
-		{"V-15", "Cryogenic vessel 15", "east"},
-		{"V-18", "Cryogenic vessel 18", "east"},
-	} {
-		item, createErr := model.NewVessel(seed.id, seed.name, seed.zone, now())
-		if createErr != nil {
-			return nil, createErr
-		}
-		if registerErr := vesselRegistry.Register(item); registerErr != nil {
-			return nil, registerErr
-		}
-	}
-	vesselRecovery := vessel.NewRecovery(vesselRegistry)
-	if replayErr := journal.NewReplay(store).Partition("vessels", func(event model.Event) error {
-		return vesselRecovery.Restore([]model.Event{event})
-	}); replayErr != nil {
-		return nil, replayErr
-	}
-	vesselState := vessel.NewStateService(vesselRegistry, now)
 
+	vesselRegistry := vessel.NewRegistry()
 	probeRegistry := probe.NewRegistry(256)
-	for _, seed := range []struct {
-		id, vesselID string
-		kind         model.ProbeKind
-	}{
-		{"P-L03", "V-03", model.ProbeLevel},
-		{"P-P07", "V-07", model.ProbePressure},
-		{"P-L12", "V-12", model.ProbeLevel},
-		{"P-44", "V-15", model.ProbeTemperature},
-		{"P-P18", "V-18", model.ProbePressure},
-	} {
-		item, createErr := model.NewProbe(seed.id, seed.kind, seed.vesselID, now())
-		if createErr != nil {
-			return nil, createErr
-		}
-		if registerErr := probeRegistry.Register(item); registerErr != nil {
-			return nil, registerErr
-		}
-	}
-	probeLifecycle := probe.NewLifecycle(probeRegistry, now)
+	circuitRegistry := circuit.NewRegistry()
+
 	snapshots := telemetry.NewSnapshotStore()
-	snapshots.Replace(vesselRegistry.List(), now())
+	vesselState := vessel.NewStateService(vesselRegistry, now)
 	ingestor := telemetry.NewIngestor(probeRegistry, vesselState, snapshots)
 	subscriptions := telemetry.NewSubscriptionManager(probeRegistry, ingestor)
-	for _, item := range probeRegistry.List() {
-		if err := subscriptions.Start(item.ID); err != nil {
-			return nil, err
-		}
+
+	pressureMonitor := pressure.NewMonitor(now)
+	policy := pressure.DefaultPolicy()
+	if err := policy.Validate(); err != nil {
+		return nil, err
 	}
+
+	circuitManager := circuit.NewManager()
+	transport := valve.NewMemoryTransport(now)
+	valveController, err := valve.NewController(transport, now)
+	if err != nil {
+		return nil, err
+	}
+	commandService := valve.NewCommandService(valveController, now)
+	routeService := valve.NewRouteService(commandService)
+	fillCoordinator := fill.NewCoordinator(circuitManager, circuitRegistry, routeService, vesselState, now)
+
+	// The device catalog is the single source of truth for vessels,
+	// probes and circuits. It is loaded from disk (and seeded on first
+	// start), validated as a whole, and reconciled into the registries.
+	deviceCatalog := catalog.NewService(
+		catalog.NewFileStore(filepath.Join(cfg.DataDir, "devices.json")),
+		vesselRegistry,
+		probeRegistry,
+		circuitRegistry,
+		fillOccupancy{coordinator: fillCoordinator},
+		catalog.Hooks{
+			ProbeAttached: func(item model.Probe) error { return subscriptions.Start(item.ID) },
+			ProbeDetaching: func(id string) {
+				subscriptions.Stop(id)
+			},
+			ProbeRebound:  rebindWithSubscriptions(probeRegistry, subscriptions, now),
+			VesselTracked: trackVessel(pressureMonitor, snapshots, policy, now),
+		},
+		now,
+	)
+	if err := deviceCatalog.Load(); err != nil {
+		return nil, err
+	}
+	slog.Info("device catalog loaded", "devices", len(deviceCatalog.List()))
+	snapshots.Replace(vesselRegistry.List(), now())
+
 	receiver := telemetry.NewReceiver(probeRegistry)
+	probeLifecycle := probe.NewLifecycle(probeRegistry, now)
 	probeMonitor := monitor.NewProbeMonitor(probeRegistry, cfg.ProbeStaleAfter, now)
 	if err := ingestor.AddObserver(probeMonitor.Observe); err != nil {
 		return nil, err
@@ -106,16 +105,6 @@ func buildRuntime(cfg config, now func() time.Time) (*runtime, error) {
 	rebind := transfer.NewRebindService(probeLifecycle, probeRegistry, subscriptions, now)
 	transferService := transfer.NewService(rebind, now)
 
-	pressureMonitor := pressure.NewMonitor(now)
-	policy := pressure.DefaultPolicy()
-	if err := policy.Validate(); err != nil {
-		return nil, err
-	}
-	for _, vesselID := range []string{"V-03", "V-07", "V-09", "V-12", "V-15", "V-18"} {
-		if err := pressureMonitor.AddVessel(vesselID, policy.RequiredSamples, policy.MaximumSpread); err != nil {
-			return nil, err
-		}
-	}
 	calibrations := probe.NewCalibrationService(probeRegistry, now)
 	if err := calibrations.Subscribe(func(notice probe.CalibrationNotice) {
 		_ = pressureMonitor.Reset(notice.VesselID, notice.NewEpoch)
@@ -130,26 +119,7 @@ func buildRuntime(cfg config, now func() time.Time) (*runtime, error) {
 		return nil, err
 	}
 
-	circuitRegistry := circuit.NewRegistry(
-		circuit.Circuit{ID: "C-A", Zone: "north", ValveID: "VALVE-A", Enabled: true},
-		circuit.Circuit{ID: "C-B", Zone: "south", ValveID: "VALVE-B", Enabled: true},
-	)
-	circuitManager := circuit.NewManager("C-A", "C-B")
-	if err := circuitRegistry.UpdatePressure("C-A", 121.0); err != nil {
-		return nil, err
-	}
-	if err := circuitRegistry.SetEnabled("C-B", true); err != nil {
-		return nil, err
-	}
 	circuitHealth := circuit.NewHealthService(circuitRegistry, circuitManager, now)
-	transport := valve.NewMemoryTransport(now)
-	valveController, err := valve.NewController(transport, now)
-	if err != nil {
-		return nil, err
-	}
-	commandService := valve.NewCommandService(valveController, now)
-	routeService := valve.NewRouteService(commandService)
-	fillCoordinator := fill.NewCoordinator(circuitManager, circuitRegistry, routeService, vesselState, now)
 	retryService, err := fill.NewRetryService(commandService, fill.RetryPolicy{Attempts: 3, Delay: 100 * time.Millisecond})
 	if err != nil {
 		return nil, err
@@ -194,6 +164,7 @@ func buildRuntime(cfg config, now func() time.Time) (*runtime, error) {
 	healthService := monitor.NewHealthService(ingestor, circuitHealth, probeMonitor, now)
 
 	apiServer := api.NewServer(api.Dependencies{
+		Catalog:        deviceCatalog,
 		Vessels:        vesselRegistry,
 		Fills:          fillService,
 		Alarms:         alarmService,
@@ -214,6 +185,68 @@ func buildRuntime(cfg config, now func() time.Time) (*runtime, error) {
 		IdleTimeout:       60 * time.Second,
 	}
 	return &runtime{server: server, retryQueue: retryQueue, dispatcher: dispatcher, alarmService: alarmService}, nil
+}
+
+// fillOccupancy adapts the fill coordinator to the catalog's occupancy
+// guard so devices held by an active fill cannot be deactivated.
+type fillOccupancy struct {
+	coordinator *fill.Coordinator
+}
+
+func (o fillOccupancy) GuardVessel(vesselID string, action func() error) error {
+	err := o.coordinator.GuardVessel(vesselID, action)
+	if errors.Is(err, fill.ErrDeviceOccupied) {
+		return catalog.ErrDeviceOccupied
+	}
+	return err
+}
+
+func (o fillOccupancy) GuardCircuit(circuitID string, action func() error) error {
+	err := o.coordinator.GuardCircuit(circuitID, action)
+	if errors.Is(err, fill.ErrDeviceOccupied) {
+		return catalog.ErrDeviceOccupied
+	}
+	return err
+}
+
+// rebindWithSubscriptions moves a probe to another vessel while keeping
+// its telemetry subscription consistent, mirroring transfer.RebindService.
+func rebindWithSubscriptions(probeRegistry *probe.Registry, subscriptions *telemetry.SubscriptionManager, now func() time.Time) func(string, string) error {
+	lifecycle := probe.NewLifecycle(probeRegistry, now)
+	return func(probeID, vesselID string) error {
+		current, ok := probeRegistry.Get(probeID)
+		if !ok {
+			return errors.New("probe not found")
+		}
+		if current.VesselID == vesselID {
+			return nil
+		}
+		subscriptions.Stop(probeID)
+		if _, err := lifecycle.Rebind(probeID, vesselID); err != nil {
+			return err
+		}
+		if err := subscriptions.Start(probeID); err != nil {
+			_, _ = lifecycle.Rebind(probeID, current.VesselID)
+			_ = subscriptions.Start(probeID)
+			return err
+		}
+		return nil
+	}
+}
+
+// trackVessel keeps derived per-vessel runtime state (pressure windows and
+// telemetry snapshots) in step with catalog membership.
+func trackVessel(pressureMonitor *pressure.Monitor, snapshots *telemetry.SnapshotStore, policy pressure.Policy, now func() time.Time) func(model.Vessel, bool) {
+	return func(item model.Vessel, added bool) {
+		if added {
+			if err := pressureMonitor.AddVessel(item.ID, policy.RequiredSamples, policy.MaximumSpread); err != nil {
+				slog.Error("pressure window setup failed", "vessel", item.ID, "error", err)
+			}
+			snapshots.Apply(item)
+			return
+		}
+		snapshots.Remove(item.ID)
+	}
 }
 
 func (r *runtime) run(ctx context.Context) error {

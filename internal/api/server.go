@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/wyw14/cry-98/internal/alarm"
+	"github.com/wyw14/cry-98/internal/catalog"
 	"github.com/wyw14/cry-98/internal/fill"
 	"github.com/wyw14/cry-98/internal/monitor"
 	"github.com/wyw14/cry-98/internal/probe"
@@ -15,6 +16,7 @@ import (
 )
 
 type Dependencies struct {
+	Catalog        *catalog.Service
 	Vessels        *vessel.Registry
 	Fills          *fill.Service
 	Alarms         *alarm.Service
@@ -69,6 +71,10 @@ func (s *Server) routes() chi.Router {
 		api.Get("/probes", s.listProbes)
 		api.Post("/probes/{id}/samples", s.publishProbeSample)
 		api.Post("/probes/{id}/rebind", s.rebindProbe)
+		api.Get("/devices", s.listDevices)
+		api.Post("/devices", s.registerDevice)
+		api.Put("/devices/{id}", s.updateDevice)
+		api.Post("/devices/{id}/deactivate", s.deactivateDevice)
 	})
 	return router
 }
