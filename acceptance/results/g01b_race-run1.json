@@ -1,0 +1,441 @@
+{
+ "side": "B",
+ "reviewer": "Codex acceptance session 2026-10-02",
+ "tier": "normal",
+ "fixture": "g01b_race",
+ "note": "violation = device deactivated (200) while an active fill session occupies it",
+ "steps": {
+  "R1_circuit_race": {
+   "rounds": [
+    {
+     "k": 0,
+     "vessel": "V-03",
+     "circuit": "C-0R00",
+     "register": 201,
+     "deactivate_status": 409,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "901ba980-c8a0-41c7-a763-8fec0fef3734",
+       "circuit": "C-0R00",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R00",
+      "status": "active"
+     },
+     "violation": false
+    },
+    {
+     "k": 1,
+     "vessel": "V-07",
+     "circuit": "C-0R01",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "cc3f62a7-dcad-4233-8c2b-c6701b0b7dfa",
+       "circuit": "C-0R01",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R01",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 2,
+     "vessel": "V-09",
+     "circuit": "C-0R02",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "b06b3d6b-3267-4b1d-befe-68bbdd541385",
+       "circuit": "C-0R02",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R02",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 3,
+     "vessel": "V-12",
+     "circuit": "C-0R03",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "a78d79be-75d0-480c-86f7-1ddf7eac51a2",
+       "circuit": "C-0R03",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R03",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 4,
+     "vessel": "V-15",
+     "circuit": "C-0R04",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "a91fdbfa-1f21-4f97-b808-3f484674c988",
+       "circuit": "C-0R04",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R04",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 5,
+     "vessel": "V-18",
+     "circuit": "C-0R05",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "e7cf9a03-2c4d-4a1c-9a26-fcd1c7bec4cb",
+       "circuit": "C-0R05",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R05",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 6,
+     "vessel": "V-03",
+     "circuit": "C-0R06",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "0906d13d-6222-4bb5-9e92-c0eede99f634",
+       "circuit": "C-0R06",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R06",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 7,
+     "vessel": "V-07",
+     "circuit": "C-0R07",
+     "register": 201,
+     "deactivate_status": 409,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "9be5f69d-dbcd-4ff2-b311-7e49b510c9e6",
+       "circuit": "C-0R07",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R07",
+      "status": "active"
+     },
+     "violation": false
+    },
+    {
+     "k": 8,
+     "vessel": "V-09",
+     "circuit": "C-0R08",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "61db4a86-4780-4bb2-9924-181df2b46189",
+       "circuit": "C-0R08",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R08",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 9,
+     "vessel": "V-12",
+     "circuit": "C-0R09",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "d7f489e3-ed4e-4d2c-9e19-297b60a59426",
+       "circuit": "C-0R09",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R09",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 10,
+     "vessel": "V-15",
+     "circuit": "C-0R10",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "68d843ac-d375-462c-90b3-4b22cf31aadb",
+       "circuit": "C-0R10",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R10",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 11,
+     "vessel": "V-18",
+     "circuit": "C-0R11",
+     "register": 201,
+     "deactivate_status": 409,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "2cc22a7a-8bd2-42ef-82b0-5f11786ebc59",
+       "circuit": "C-0R11",
+       "state": "filling"
+      }
+     ],
+     "circuit_after": {
+      "id": "C-0R11",
+      "status": "active"
+     },
+     "violation": false
+    }
+   ],
+   "violations": 9
+  },
+  "R2_vessel_race": {
+   "rounds": [
+    {
+     "k": 0,
+     "vessel": "V-R00",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "b5ed246a-470b-49bb-8b5a-8cb311b8518f",
+       "circuit": "C-A",
+       "state": "filling"
+      }
+     ],
+     "vessel_after": {
+      "id": "V-R00",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 1,
+     "vessel": "V-R01",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "6a896bee-9e0c-4492-95b1-edce356b2b3d",
+       "circuit": "C-A",
+       "state": "filling"
+      }
+     ],
+     "vessel_after": {
+      "id": "V-R01",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 2,
+     "vessel": "V-R02",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "56687efa-afda-4e35-a303-44360f8c1e5d",
+       "circuit": "C-A",
+       "state": "filling"
+      }
+     ],
+     "vessel_after": {
+      "id": "V-R02",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 3,
+     "vessel": "V-R03",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 400,
+     "active_sessions": [],
+     "vessel_after": {
+      "id": "V-R03",
+      "status": "deactivated"
+     },
+     "violation": false
+    },
+    {
+     "k": 4,
+     "vessel": "V-R04",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "2a0f4003-25d3-46de-9bca-6f982d7770be",
+       "circuit": "C-A",
+       "state": "filling"
+      }
+     ],
+     "vessel_after": {
+      "id": "V-R04",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 5,
+     "vessel": "V-R05",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "1aa6127c-d194-495e-b257-0f1b906ca291",
+       "circuit": "C-A",
+       "state": "filling"
+      }
+     ],
+     "vessel_after": {
+      "id": "V-R05",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 6,
+     "vessel": "V-R06",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "cde991a3-0f5b-485f-8b38-93edccb6eb9f",
+       "circuit": "C-A",
+       "state": "filling"
+      }
+     ],
+     "vessel_after": {
+      "id": "V-R06",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 7,
+     "vessel": "V-R07",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "bf2da5f6-c6e8-4f7d-9fda-2a0dc2c4a40a",
+       "circuit": "C-A",
+       "state": "filling"
+      }
+     ],
+     "vessel_after": {
+      "id": "V-R07",
+      "status": "deactivated"
+     },
+     "violation": true
+    },
+    {
+     "k": 8,
+     "vessel": "V-R08",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 400,
+     "active_sessions": [],
+     "vessel_after": {
+      "id": "V-R08",
+      "status": "deactivated"
+     },
+     "violation": false
+    },
+    {
+     "k": 9,
+     "vessel": "V-R09",
+     "register": 201,
+     "deactivate_status": 200,
+     "fill_status": 201,
+     "active_sessions": [
+      {
+       "id": "4452e951-158c-4647-abdb-0d2ae16cd6db",
+       "circuit": "C-A",
+       "state": "filling"
+      }
+     ],
+     "vessel_after": {
+      "id": "V-R09",
+      "status": "deactivated"
+     },
+     "violation": true
+    }
+   ],
+   "violations": 8
+  },
+  "summary": {
+   "circuit_race_violations": 9,
+   "vessel_race_violations": 8
+  }
+ }
+}
